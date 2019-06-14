@@ -28,9 +28,30 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
+            this.DatatecServiceInstaller = new System.ServiceProcess.ServiceProcessInstaller();
+            this.DatatecService = new System.ServiceProcess.ServiceInstaller();
+            // 
+            // DatatecServiceInstaller
+            // 
+            this.DatatecServiceInstaller.Account = System.ServiceProcess.ServiceAccount.LocalSystem;
+            this.DatatecServiceInstaller.Password = null;
+            this.DatatecServiceInstaller.Username = null;
+            // 
+            // DatatecService
+            // 
+            this.DatatecService.ServiceName = "Datatec";
+            // 
+            // ProjectInstaller
+            // 
+            this.Installers.AddRange(new System.Configuration.Install.Installer[] {
+            this.DatatecServiceInstaller,
+            this.DatatecService});
+
         }
 
         #endregion
+
+        private System.ServiceProcess.ServiceProcessInstaller DatatecServiceInstaller;
+        private System.ServiceProcess.ServiceInstaller DatatecService;
     }
 }

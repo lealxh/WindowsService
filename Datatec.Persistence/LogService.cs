@@ -15,7 +15,7 @@ namespace Datatec.Persistence
         private readonly log4net.ILog _logger;
         public LogService()
         {
-            XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetEntryAssembly()), new System.IO.FileInfo("log4net.config"));
+            XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetEntryAssembly()));
             this._logger = log4net.LogManager.GetLogger(Assembly.GetEntryAssembly(), "Datatec");
         }
 
