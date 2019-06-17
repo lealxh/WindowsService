@@ -43,6 +43,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Datatec.DTO\Datatec.DTO.csproj">
+      <Project>{4f1b0825-2bb2-4e9f-ab4c-49aa019499c3}</Project>
+      <Name>Datatec.DTO</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Datatec.Persistence\Datatec.Persistence.csproj">
       <Project>{BF817D46-9404-4EEA-88FE-D76D01D67999}</Project>
       <Name>Datatec.Persistence</Name>

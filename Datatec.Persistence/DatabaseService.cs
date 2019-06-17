@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Data.Common;
+using Datatec.DTO;
 
 namespace Datatec.Persistence
 {
@@ -42,21 +43,14 @@ namespace Datatec.Persistence
             return parameter;
         }
 
-        public IEnumerable<object> CreateParameters(string data)
+        public IEnumerable<object> CreateParameters(PuntaDolarDTO data)
         {
 
             List<SqlParameter> parametros = new List<SqlParameter>();
-            parametros.Add(CreateParam(DateTime.Now, "@fecha",System.Data.SqlDbType.DateTime));
-            parametros.Add(CreateParam("DOLAR", "@moneda", System.Data.SqlDbType.Char,6));
-            string valorStr = data.Substring(10, 9).Trim().Replace('.', ',');
-            decimal valorDec = 0;
-            decimal.TryParse(valorStr, out valorDec);
-            parametros.Add(CreateParam(valorDec, "@precio", System.Data.SqlDbType.Decimal));
-            string factorStr = ConfigurationManager.AppSettings["Factor"];
-            decimal factorDec = 0;
-            decimal.TryParse(factorStr, out factorDec);
-            parametros.Add(CreateParam(factorDec, "@factor", System.Data.SqlDbType.Decimal));
-
+            parametros.Add(CreateParam(data.Fecha, "@fecha",System.Data.SqlDbType.DateTime));
+            parametros.Add(CreateParam(data.Moneda, "@moneda", System.Data.SqlDbType.Char,6));
+            parametros.Add(CreateParam(data.Precio, "@precio", System.Data.SqlDbType.Decimal));
+            parametros.Add(CreateParam(data.Factor, "@factor", System.Data.SqlDbType.Decimal));
             return parametros;
         }
 

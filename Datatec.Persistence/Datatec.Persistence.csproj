@@ -56,5 +56,11 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Datatec.DTO\Datatec.DTO.csproj">
+      <Project>{4f1b0825-2bb2-4e9f-ab4c-49aa019499c3}</Project>
+      <Name>Datatec.DTO</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

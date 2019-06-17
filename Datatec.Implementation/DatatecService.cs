@@ -1,4 +1,5 @@
-﻿using Datatec.Persistence;
+﻿using Datatec.DTO;
+using Datatec.Persistence;
 using Datatec.Services;
 using System;
 using System.Configuration;
@@ -29,24 +30,29 @@ namespace Datatec.Implementation
         private void OnChanged(object source, FileSystemEventArgs e)
         {
             string lastLine=ReadInput();
+            if(lastLine!=null)
             WriteOutPut(lastLine);
 
         }
 
         public string ReadInput()
         {
-                try
-                {
-                    String path = _pathToWatch + @"\" + _nameofFile;
-                    string lastline = File.ReadLines(path).Last();
-                    _logService.Log(LogLevel.Info,lastline);
-                    return lastline;
-                }
-                catch (Exception ex)
-                {
-                    _logService.Log(LogLevel.Error, ex.ToString());
-                }
-                return null;
+            try
+            {
+                String path = _pathToWatch + @"\" + _nameofFile;
+                string lastline = File.ReadLines(path).Last();
+                _logService.Log(LogLevel.Info, lastline);
+                return lastline;
+            }
+            catch (System.IO.IOException ioe)
+            {
+                _logService.Log(LogLevel.Error, ioe.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+            return null;
       }
 
         public void Start()
@@ -66,7 +72,25 @@ namespace Datatec.Implementation
         public void WriteOutPut(String lastLine)
         {
              string spName= ConfigurationManager.AppSettings["StoredProcedureName"];
-            _dbService.ExecuteQuery(spName, _dbService.CreateParameters(lastLine));
+
+            string valorStr = lastLine.Substring(10, 9).Trim().Replace('.', ',');
+            decimal valorDec = 0;
+            decimal.TryParse(valorStr, out valorDec);
+
+            string factorStr = ConfigurationManager.AppSettings["Factor"];
+            decimal factorDec = 0;
+            decimal.TryParse(factorStr, out factorDec);
+
+
+            var data = new PuntaDolarDTO()
+            {
+                Fecha=DateTime.Now,
+                Precio=valorDec,
+                Factor=factorDec,
+                Moneda="USD"
+            };
+        
+            _dbService.ExecuteQuery(spName, _dbService.CreateParameters(data));
             _logService.Log(LogLevel.Info, "Informacion enviada a Base de datos");
 
         }
