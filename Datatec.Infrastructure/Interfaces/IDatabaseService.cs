@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Datatec.DTO;
 
-namespace Datatec.Persistence
+namespace Datatec.Infrastructure
 {
     public interface IDatabaseService
     {

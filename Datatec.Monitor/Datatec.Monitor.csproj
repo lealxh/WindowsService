@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D48501B5-ABC8-4128-96CE-B345221ECAB2}</ProjectGuid>
+    <ProjectGuid>{ED94AE4C-61F2-4804-903B-EEE0ED42AAFB}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Datatec.WindowsService</RootNamespace>
-    <AssemblyName>Datatec.WindowsService</AssemblyName>
+    <RootNamespace>Datatec.Monitor</RootNamespace>
+    <AssemblyName>Datatec.Monitor</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -22,7 +22,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>2</ApplicationRevision>
+    <ApplicationRevision>1</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -48,10 +48,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>9F846BBAE0B9F68B1C6FD98E5436C8FD08219732</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>25E3890168BDBDE52BBB1434F5E03DA3C9AAF727</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>Datatec.WindowsService_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>Datatec.Monitor_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
@@ -60,6 +60,9 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
@@ -90,8 +93,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
-      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Datatec.Monitor_TemporaryKey.pfx" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datatec.Implementation\Datatec.Implementation.csproj">
@@ -99,7 +104,7 @@
       <Name>Datatec.Implementation</Name>
     </ProjectReference>
     <ProjectReference Include="..\Datatec.Infrastructure\Datatec.Infrastructure.csproj">
-      <Project>{bf817d46-9404-4eea-88fe-d76d01d67999}</Project>
+      <Project>{BF817D46-9404-4EEA-88FE-D76D01D67999}</Project>
       <Name>Datatec.Infrastructure</Name>
     </ProjectReference>
     <ProjectReference Include="..\Datatec.Services\Datatec.Services.csproj">

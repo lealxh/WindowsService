@@ -1,4 +1,4 @@
-﻿namespace Datatec.WindowsService
+﻿namespace Datatec.Monitor
 {
     partial class ProjectInstaller
     {
@@ -28,31 +28,31 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.DatatecServiceInstaller = new System.ServiceProcess.ServiceProcessInstaller();
-            this.DatatecService = new System.ServiceProcess.ServiceInstaller();
+            this.MonitorServiceProcessInstaller = new System.ServiceProcess.ServiceProcessInstaller();
+            this.MonitorServiceInstaller = new System.ServiceProcess.ServiceInstaller();
             // 
-            // DatatecServiceInstaller
+            // MonitorServiceProcessInstaller
             // 
-            this.DatatecServiceInstaller.Account = System.ServiceProcess.ServiceAccount.LocalSystem;
-            this.DatatecServiceInstaller.Password = null;
-            this.DatatecServiceInstaller.Username = null;
+            this.MonitorServiceProcessInstaller.Account = System.ServiceProcess.ServiceAccount.LocalSystem;
+            this.MonitorServiceProcessInstaller.Password = null;
+            this.MonitorServiceProcessInstaller.Username = null;
             // 
-            // DatatecService
+            // MonitorServiceInstaller
             // 
-            this.DatatecService.ServiceName = "Datatec";
-            this.DatatecService.Description = "Sincroniza el archivo tcerradh.txt con la tabla RANGOTAS en CisCB";
+            this.MonitorServiceInstaller.ServiceName = "DatatecMonitor";
+            this.MonitorServiceInstaller.Description = "Monitorea que el servicio Datatec este arriba";
             // 
             // ProjectInstaller
             // 
             this.Installers.AddRange(new System.Configuration.Install.Installer[] {
-            this.DatatecServiceInstaller,
-            this.DatatecService});
+            this.MonitorServiceProcessInstaller,
+            this.MonitorServiceInstaller});
 
         }
 
         #endregion
 
-        private System.ServiceProcess.ServiceProcessInstaller DatatecServiceInstaller;
-        private System.ServiceProcess.ServiceInstaller DatatecService;
+        private System.ServiceProcess.ServiceProcessInstaller MonitorServiceProcessInstaller;
+        private System.ServiceProcess.ServiceInstaller MonitorServiceInstaller;
     }
 }

@@ -7,13 +7,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Services", "Datatec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Implementation", "Datatec.Implementation\Datatec.Implementation.csproj", "{F2160365-E412-4413-A467-07FB83C5398B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Persistence", "Datatec.Persistence\Datatec.Persistence.csproj", "{BF817D46-9404-4EEA-88FE-D76D01D67999}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Infrastructure", "Datatec.Infrastructure\Datatec.Infrastructure.csproj", "{BF817D46-9404-4EEA-88FE-D76D01D67999}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Consola", "Datatec.Consola\Datatec.Consola.csproj", "{225599DE-28D2-453A-A70D-0D184E55AEAC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.WindowsService", "Datatec.WindowsService\Datatec.WindowsService.csproj", "{D48501B5-ABC8-4128-96CE-B345221ECAB2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.DTO", "Datatec.DTO\Datatec.DTO.csproj", "{4F1B0825-2BB2-4E9F-AB4C-49AA019499C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Monitor", "Datatec.Monitor\Datatec.Monitor.csproj", "{ED94AE4C-61F2-4804-903B-EEE0ED42AAFB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{4F1B0825-2BB2-4E9F-AB4C-49AA019499C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F1B0825-2BB2-4E9F-AB4C-49AA019499C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F1B0825-2BB2-4E9F-AB4C-49AA019499C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED94AE4C-61F2-4804-903B-EEE0ED42AAFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED94AE4C-61F2-4804-903B-EEE0ED42AAFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED94AE4C-61F2-4804-903B-EEE0ED42AAFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED94AE4C-61F2-4804-903B-EEE0ED42AAFB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

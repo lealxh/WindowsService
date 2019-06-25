@@ -8,7 +8,7 @@ using System.Data.SqlClient;
 using System.Data.Common;
 using Datatec.DTO;
 
-namespace Datatec.Persistence
+namespace Datatec.Infrastructure
 {
     public class DatabaseService : IDatabaseService
     {

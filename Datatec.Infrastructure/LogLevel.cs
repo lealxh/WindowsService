@@ -1,4 +1,4 @@
-﻿namespace Datatec.Persistence
+﻿namespace Datatec.Infrastructure
 {
     public enum LogLevel
     {

@@ -1,7 +1,4 @@
-﻿using Datatec.Implementation;
-using Datatec.Infrastructure;
-
-namespace Datatec.WindowsService
+﻿namespace Datatec.Monitor
 {
     partial class Service1
     {
@@ -32,9 +29,7 @@ namespace Datatec.WindowsService
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            this.ServiceName = "Datatec";
-
-
+            this.ServiceName = "DatatecMonitor";
         }
 
         #endregion

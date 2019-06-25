@@ -42,6 +42,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IDatatecMonitor.cs" />
+    <Compile Include="INotificationService.cs" />
+    <Compile Include="ITimeService.cs" />
     <Compile Include="IDatatecService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

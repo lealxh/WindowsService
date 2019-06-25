@@ -48,16 +48,18 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datatec.Implementation\Datatec.Implementation.csproj">
       <Project>{f2160365-e412-4413-a467-07fb83c5398b}</Project>
       <Name>Datatec.Implementation</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Datatec.Persistence\Datatec.Persistence.csproj">
-      <Project>{BF817D46-9404-4EEA-88FE-D76D01D67999}</Project>
-      <Name>Datatec.Persistence</Name>
+    <ProjectReference Include="..\Datatec.Infrastructure\Datatec.Infrastructure.csproj">
+      <Project>{bf817d46-9404-4eea-88fe-d76d01d67999}</Project>
+      <Name>Datatec.Infrastructure</Name>
     </ProjectReference>
     <ProjectReference Include="..\Datatec.Services\Datatec.Services.csproj">
       <Project>{49670B7F-7F75-4413-B190-D4EF12D92D3B}</Project>

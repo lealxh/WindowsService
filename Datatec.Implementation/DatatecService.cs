@@ -1,38 +1,118 @@
 ﻿using Datatec.DTO;
-using Datatec.Persistence;
+using Datatec.Infrastructure;
 using Datatec.Services;
 using System;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.ServiceProcess;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Datatec.Implementation
 {
     public class DatatecService : IDatatecService
     {
+        public readonly TimeSpan _maxTimeSpan;
         private readonly ILogService _logService;
         private readonly IDatabaseService _dbService;
+        private readonly ITimeService timeService;
+        private readonly INotificationService notificationService;
         private FileSystemWatcher _watcher;
         private readonly string _pathToWatch;
         private readonly string _nameofFile;
 
+        private Timer _tareaWatcher;
 
-        public DatatecService(ILogService logService, IDatabaseService dbService)
+
+        public TimeSpan TimeSinceLastEvent
+        {   get
+            {
+                TimeSpan t = (timeService.GetCurrentTime() - _lastEventTime);
+                return t;
+            }
+        }
+
+        private DateTime _lastEventTime;
+        private Status _status;
+
+
+        public DatatecService(ILogService logService, IDatabaseService dbService,ITimeService timeService,INotificationService notificationService)
         {
             this._logService = logService;
             this._dbService = dbService;
-            this._pathToWatch= ConfigurationManager.AppSettings["PathToWatch"];
-            this._nameofFile = ConfigurationManager.AppSettings["FileName"];
-            _watcher = new FileSystemWatcher(_pathToWatch, _nameofFile);
-
+            this.timeService = timeService;
+            this.notificationService = notificationService;
+            _maxTimeSpan = TimeSpan.Parse(ConfigurationManager.AppSettings["MaxTimeSpan"]);
+            _pathToWatch= ConfigurationManager.AppSettings["PathToWatch"];
+            _nameofFile = ConfigurationManager.AppSettings["FileName"];
+            _lastEventTime = DateTime.Now;
         }
+
+
         private void OnChanged(object source, FileSystemEventArgs e)
         {
+            _lastEventTime = DateTime.Now;
             string lastLine=ReadInput();
             if(lastLine!=null)
             WriteOutPut(lastLine);
 
+        }
+
+        private void OnError(object source, ErrorEventArgs e)
+        {
+            _logService.Log(LogLevel.Error, "Error lanzado por el watcher");
+            _logService.Log(LogLevel.Error, e.GetException().ToString());
+            notificationService.SendNotification("Error detectado por el watcher: "+e.GetException().Message);
+
+            CreateWatcher();
+        }
+        void WatcherMonitorCallback()
+        {
+            if (_status == Status.Started)
+            {
+                if (timeService.IsWorkingHours() && TimeSinceLastEvent > _maxTimeSpan)
+                {
+                    _logService.Log(LogLevel.Warn, String.Format("Tiempo desde el ultimo evento: {0}", TimeSinceLastEvent.ToString(@"hh\:mm\:ss")));
+                    notificationService.SendNotification(String.Format("Tiempo desde el ultimo evento: {0}", TimeSinceLastEvent.ToString(@"hh\:mm\:ss")));
+
+                    if (!Directory.Exists(_pathToWatch))
+                    {
+                        _logService.Log(LogLevel.Warn, String.Format("Directorio {0} no disponible", _pathToWatch));
+                        notificationService.SendNotification(String.Format("Directorio {0} no disponible", _pathToWatch));
+                    }
+                }
+            }
+            else
+            {
+                DisposeWatcherMonitor();
+            }
+        }
+
+        private void CreateWatcherMonitor()
+        {
+            try
+            {
+
+                var startTimeSpan = TimeSpan.Zero;
+                var periodTimeSpan = TimeSpan.FromMinutes(1);
+                 _tareaWatcher = new System.Threading.Timer( (e) => { WatcherMonitorCallback();}, 
+                 null, 
+                 startTimeSpan, 
+                 periodTimeSpan);
+
+            }
+            catch (Exception ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+        }
+
+        private void DisposeWatcherMonitor()
+        {
+            _tareaWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+            _tareaWatcher.Dispose();
         }
 
         public string ReadInput()
@@ -53,25 +133,80 @@ namespace Datatec.Implementation
                 _logService.Log(LogLevel.Error, ex.ToString());
             }
             return null;
-      }
+        }
+        private void CreateWatcher()
+        {
+            try
+            {
+                _watcher = new FileSystemWatcher(_pathToWatch, _nameofFile);
+                _watcher.NotifyFilter = NotifyFilters.LastWrite;
+                _watcher.Changed += OnChanged;
+                _watcher.Error += new ErrorEventHandler(OnError);
+                _watcher.EnableRaisingEvents = true;
+                _logService.Log(LogLevel.Info, "FileSystemWatcher inicializado en " + _pathToWatch + "\\" + _nameofFile);
+            }
+            catch (Exception ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+            
+          
+          
+        }
+        private void DisposeWatcher()
+        {
+            _logService.Log(LogLevel.Info, "FileSystemWatcher deshabilitado");
+            try
+            {
+                _watcher.EnableRaisingEvents = false;
+                _watcher.Dispose();
+
+            }
+            catch (Exception ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+            
+        }
 
         public void Start()
         {
-           _watcher.NotifyFilter = NotifyFilters.LastWrite;
-           _watcher.Changed += OnChanged;
-           _watcher.EnableRaisingEvents = true;
-           _logService.Log(LogLevel.Info, "Servicio Iniciado");
+            _status = Status.Started;
+            _logService.Log(LogLevel.Info, "Servicio Iniciado");
+            CreateWatcher();
+            CreateWatcherMonitor();
         }
 
         public void Stop()
         {
-            _watcher.EnableRaisingEvents = false;
-            _watcher.Dispose();
+            this._status = Status.Stopped;
+            
+            DisposeWatcherMonitor();
+            DisposeWatcher();
             _logService.Log(LogLevel.Info, "Servicio Detenido");
         }
         public void WriteOutPut(String lastLine)
         {
              string spName= ConfigurationManager.AppSettings["StoredProcedureName"];
+
+            string FechaStr = lastLine.Substring(0, 10).Trim();
+            FechaStr = FechaStr.Substring(FechaStr.Length - 6, 6);
+            FechaStr = FechaStr.Substring(0, 2) + ":" + FechaStr.Substring(2, 2) + ":" + FechaStr.Substring(4, 2);
+            FechaStr = DateTime.Now.ToString("dd/MM/yyyy") +" " +FechaStr;
+
+            DateTime FechaDt = DateTime.Now;
+
+            try
+            {
+                FechaDt= DateTime.ParseExact(FechaStr, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            
 
             string valorStr = lastLine.Substring(10, 9).Trim().Replace('.', ',');
             decimal valorDec = 0;
@@ -80,7 +215,6 @@ namespace Datatec.Implementation
             string factorStr = ConfigurationManager.AppSettings["Factor"];
             decimal factorDec = 0;
             decimal.TryParse(factorStr, out factorDec);
-
 
             var data = new PuntaDolarDTO()
             {
@@ -96,3 +230,4 @@ namespace Datatec.Implementation
         }
     }
 }
+

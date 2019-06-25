@@ -8,7 +8,7 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datatec.WindowsService
+namespace Datatec.Monitor
 {
     static class Program
     {
@@ -18,16 +18,16 @@ namespace Datatec.WindowsService
         static void Main()
         {
             ILogService logService = new LogService();
-            IDatabaseService dbService = new DatabaseService(logService);
-            ITimeService timeService = new TimeService();
             ISlackClient slackClient = new SlackClient(logService);
-            INotificationService notificationService = new NotificationService(slackClient);
-            DatatecService service = new DatatecService(logService, dbService, timeService, notificationService);
+            
 
+            INotificationService notificationService = new NotificationService(slackClient);
+            IDatatecMonitor service = new DatatecMonitor(notificationService,logService);
+         
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
-                new Service1(logService,service)
+                new Service1(service)
             };
             ServiceBase.Run(ServicesToRun);
         }
