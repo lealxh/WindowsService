@@ -40,14 +40,24 @@ namespace Datatec.Implementation
 
         public DatatecService(ILogService logService, IDatabaseService dbService,ITimeService timeService,INotificationService notificationService)
         {
-            this._logService = logService;
-            this._dbService = dbService;
-            this.timeService = timeService;
-            this.notificationService = notificationService;
-            _maxTimeSpan = TimeSpan.Parse(ConfigurationManager.AppSettings["MaxTimeSpan"]);
-            _pathToWatch= ConfigurationManager.AppSettings["PathToWatch"];
-            _nameofFile = ConfigurationManager.AppSettings["FileName"];
-            _lastEventTime = DateTime.Now;
+            try
+            {
+
+
+                this._logService = logService;
+                this._dbService = dbService;
+                this.timeService = timeService;
+                this.notificationService = notificationService;
+                _maxTimeSpan = TimeSpan.Parse(ConfigurationManager.AppSettings["MaxTimeSpan"]);
+                _pathToWatch = ConfigurationManager.AppSettings["PathToWatch"];
+                _nameofFile = ConfigurationManager.AppSettings["FileName"];
+                _lastEventTime = DateTime.Now;
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+                notificationService.SendNotification(ex.ToString());
+            }
         }
 
 
@@ -68,6 +78,7 @@ namespace Datatec.Implementation
 
             CreateWatcher();
         }
+
         void WatcherMonitorCallback()
         {
             if (_status == Status.Started)
@@ -102,11 +113,20 @@ namespace Datatec.Implementation
                  startTimeSpan, 
                  periodTimeSpan);
 
+
             }
-            catch (Exception ex)
+            catch (ArgumentNullException ane)
             {
-                _logService.Log(LogLevel.Error, ex.ToString());
+                notificationService.SendNotification(ane.ToString());
+                _logService.Log(LogLevel.Error, ane.ToString());
             }
+            catch (ArgumentOutOfRangeException aoe)
+            {
+                notificationService.SendNotification(aoe.ToString());
+                _logService.Log(LogLevel.Error, aoe.ToString());
+
+            }
+
         }
 
         private void DisposeWatcherMonitor()
@@ -145,13 +165,34 @@ namespace Datatec.Implementation
                 _watcher.EnableRaisingEvents = true;
                 _logService.Log(LogLevel.Info, "FileSystemWatcher inicializado en " + _pathToWatch + "\\" + _nameofFile);
             }
-            catch (Exception ex)
+          
+
+            catch (ArgumentNullException ex)
             {
                 _logService.Log(LogLevel.Error, ex.ToString());
             }
-            
-          
-          
+            catch (ArgumentException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+            catch (PathTooLongException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+            catch (ObjectDisposedException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+            catch (PlatformNotSupportedException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+            catch (FileNotFoundException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+
+
         }
         private void DisposeWatcher()
         {
@@ -162,11 +203,24 @@ namespace Datatec.Implementation
                 _watcher.Dispose();
 
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 _logService.Log(LogLevel.Error, ex.ToString());
             }
-            
+            catch (ObjectDisposedException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+            catch (PlatformNotSupportedException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+            catch (FileNotFoundException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
+          
+
         }
 
         public void Start()
@@ -187,45 +241,45 @@ namespace Datatec.Implementation
         }
         public void WriteOutPut(String lastLine)
         {
-             string spName= ConfigurationManager.AppSettings["StoredProcedureName"];
-
-            string FechaStr = lastLine.Substring(0, 10).Trim();
-            FechaStr = FechaStr.Substring(FechaStr.Length - 6, 6);
-            FechaStr = FechaStr.Substring(0, 2) + ":" + FechaStr.Substring(2, 2) + ":" + FechaStr.Substring(4, 2);
-            FechaStr = DateTime.Now.ToString("dd/MM/yyyy") +" " +FechaStr;
-
-            DateTime FechaDt = DateTime.Now;
-
             try
             {
-                FechaDt= DateTime.ParseExact(FechaStr, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
             
+                string spName= ConfigurationManager.AppSettings["StoredProcedureName"];
 
-            string valorStr = lastLine.Substring(10, 9).Trim().Replace('.', ',');
-            decimal valorDec = 0;
-            decimal.TryParse(valorStr, out valorDec);
+                string FechaStr = lastLine.Substring(0, 10).Trim();
+                FechaStr = FechaStr.Substring(FechaStr.Length - 6, 6);
+                FechaStr = FechaStr.Substring(0, 2) + ":" + FechaStr.Substring(2, 2) + ":" + FechaStr.Substring(4, 2);
+                FechaStr = DateTime.Now.ToString("dd/MM/yyyy") +" " +FechaStr;
 
-            string factorStr = ConfigurationManager.AppSettings["Factor"];
-            decimal factorDec = 0;
-            decimal.TryParse(factorStr, out factorDec);
+                DateTime FechaDt = DateTime.Now;
 
-            var data = new PuntaDolarDTO()
-            {
-                Fecha=DateTime.Now,
-                Precio=valorDec,
-                Factor=factorDec,
-                Moneda="USD"
-            };
+                DateTime.TryParseExact(FechaStr, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture,DateTimeStyles.None, out FechaDt);
+
+           
+                string valorStr = lastLine.Substring(10, 9).Trim().Replace('.', ',');
+                decimal valorDec = 0;
+                decimal.TryParse(valorStr, out valorDec);
+
+                string factorStr = ConfigurationManager.AppSettings["Factor"];
+                decimal factorDec = 0;
+                decimal.TryParse(factorStr, out factorDec);
+
+                var data = new PuntaDolarDTO()
+                {
+                    Fecha= FechaDt,
+                    Precio=valorDec,
+                    Factor=factorDec,
+                    Moneda="USD"
+                };
         
-            _dbService.ExecuteQuery(spName, _dbService.CreateParameters(data));
-            _logService.Log(LogLevel.Info, "Informacion enviada a Base de datos");
+                _dbService.ExecuteQuery(spName, _dbService.CreateParameters(data));
+                _logService.Log(LogLevel.Info, "Informacion enviada a Base de datos");
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+            }
 
         }
     }

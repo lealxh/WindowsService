@@ -71,11 +71,32 @@ namespace Datatec.Infrastructure
                         queryCommand.ExecuteNonQuery();
                     }
             }
-            catch (Exception ex)
+            catch (ObjectDisposedException ex)
             {
                 _logService.Log(LogLevel.Error, ex.ToString());
 
             }
+            catch (SqlException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+
+            }
+            catch (System.IO.IOException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+
+            }
+            catch (InvalidCastException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+
+            }
+           
             finally
             {
                 sqlConnection.Close();

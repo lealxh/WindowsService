@@ -39,8 +39,8 @@
             // 
             // MonitorServiceInstaller
             // 
-            this.MonitorServiceInstaller.ServiceName = "DatatecMonitor";
             this.MonitorServiceInstaller.Description = "Monitorea que el servicio Datatec este arriba";
+            this.MonitorServiceInstaller.ServiceName = "DatatecMonitor";
             // 
             // ProjectInstaller
             // 

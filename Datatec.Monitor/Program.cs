@@ -27,7 +27,7 @@ namespace Datatec.Monitor
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
-                new Service1(service)
+                new Service1(logService, service)
             };
             ServiceBase.Run(ServicesToRun);
         }

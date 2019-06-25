@@ -18,8 +18,8 @@ namespace Datatec.Consola
             ITimeService timeService = new TimeService();
             ISlackClient slackClient = new SlackClient(logService);
             INotificationService notificationService = new NotificationService(slackClient);
-           // DatatecService service = new DatatecService(logService, dbService,timeService,notificationService);
-            DatatecMonitor service = new DatatecMonitor(notificationService,logService);
+            DatatecService service = new DatatecService(logService, dbService,timeService,notificationService);
+            //DatatecMonitor service = new DatatecMonitor(notificationService,logService);
             service.Start();
       
         }

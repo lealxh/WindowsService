@@ -14,22 +14,53 @@ namespace Datatec.Monitor
 {
     public partial class Service1 : ServiceBase
     {
-        private readonly IDatatecMonitor serviceMonitor;
+        private readonly ILogService logService;
+        private readonly IDatatecMonitor service;
 
-        public Service1(IDatatecMonitor serviceMonitor)
+        public Service1(ILogService logService, IDatatecMonitor service)
         {
+            this.AutoLog = true;
+            this.logService = logService;
+            this.service = service;
             InitializeComponent();
-            this.serviceMonitor = serviceMonitor;
+
         }
 
         protected override void OnStart(string[] args)
         {
-            serviceMonitor.Start();
+            service.Start();
+
+        }
+
+        protected override void OnPause()
+        {
+            logService.Log(LogLevel.Info, "Evento Pause");
+            service.Stop();
+
+        }
+
+        protected override void OnContinue()
+        {
+            logService.Log(LogLevel.Info, "Evento Continue");
+            service.Start();
+
+        }
+
+        protected override void OnShutdown()
+        {
+            logService.Log(LogLevel.Info, "Evento Shutdown");
+            service.Stop();
+
         }
 
         protected override void OnStop()
         {
-            serviceMonitor.Stop();
+            service.Stop();
+        }
+
+        protected override void OnSessionChange(SessionChangeDescription changeDescription)
+        {
+            logService.Log(LogLevel.Info, "Cambio de sesion: " + changeDescription.Reason);
 
         }
     }
