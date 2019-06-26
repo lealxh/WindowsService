@@ -20,22 +20,18 @@ namespace Datatec.Implementation
         private Status _status;
         private readonly string _datatecServerName;
         private readonly string _datatecServiceName;
-        private readonly ServiceController _datatecServiceController;
+        private ServiceController _datatecServiceController;
         private Timer _tareaMonitor;
 
         public DatatecMonitor(INotificationService notificationService,ILogService logService)
         {
             try
             {
+                    _status = Status.Stopped;
                     _timeSpanToCheck = TimeSpan.Parse(ConfigurationManager.AppSettings["TimesPanToCheck"]);
                     _datatecServerName = ConfigurationManager.AppSettings["DatatecServerName"];
                     _datatecServiceName = ConfigurationManager.AppSettings["DatatecServiceName"];
 
-                    ServiceController[] serviceControllers = ServiceController.GetServices(_datatecServerName);
-
-                    _datatecServiceController  = serviceControllers.Where(x => x.ServiceName == _datatecServiceName).SingleOrDefault();
-            
-            
                     this.notificationService = notificationService;
                     this.logService = logService;
             }
@@ -182,7 +178,9 @@ namespace Datatec.Implementation
         }
         public void Start()
         {
-           
+             ServiceController[] serviceControllers = ServiceController.GetServices(_datatecServerName);
+             _datatecServiceController = serviceControllers.Where(x => x.ServiceName == _datatecServiceName).SingleOrDefault();
+
             if (_datatecServiceController != null)
             {
                 _status = Status.Started;
@@ -200,10 +198,16 @@ namespace Datatec.Implementation
 
         public void Stop()
         {
-            _status = Status.Started;
-            DisposeTareaMonitor();
-            logService.Log(LogLevel.Info, "Datatec Monitor Stoped");
-         
+            if (_status == Status.Started)
+            {
+                DisposeTareaMonitor();
+                logService.Log(LogLevel.Info, "Datatec Monitor Stoped");
+            }
+            else
+            {
+                logService.Log(LogLevel.Info, "Datatec Monitor already stopped");
+            }
+
         }
     }
 }

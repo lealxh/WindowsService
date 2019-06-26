@@ -107,7 +107,7 @@ namespace Datatec.Implementation
             {
 
                 var startTimeSpan = TimeSpan.Zero;
-                var periodTimeSpan = TimeSpan.FromMinutes(1);
+                var periodTimeSpan = _maxTimeSpan;
                  _tareaWatcher = new System.Threading.Timer( (e) => { WatcherMonitorCallback();}, 
                  null, 
                  startTimeSpan, 
