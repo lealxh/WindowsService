@@ -2,34 +2,42 @@
 using Datatec.Infrastructure;
 using Datatec.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Autofac;
 
 namespace Datatec.Consola
 {
     class Program
     {
-        public Program()
-        {
-            ILogService logService = new LogService();
-            IDatabaseService dbService = new DatabaseService(logService);
-            ITimeService timeService = new TimeService();
-            ISlackClient slackClient = new SlackClient(logService);
-            INotificationService notificationService = new NotificationService(slackClient);
-            DatatecService service = new DatatecService(logService, dbService,timeService,notificationService);
-            //DatatecMonitor service = new DatatecMonitor(notificationService,logService);
-            service.Start();
-      
-        }
+        private static IContainer Container { get; set; }
+
         static void Main(string[] args)
         {
-            Program p = new Program();
-            Console.ReadLine();
+
+            var builder = new ContainerBuilder();
+            builder.RegisterType<LogService>().As<ILogService>();
+            builder.RegisterType<FileService>().As<IFileService>();
+            builder.RegisterType<DatabaseService>().As<IDatabaseService>();
+            builder.RegisterType<SlackClient>().As<ISlackClient>();
+            builder.RegisterType<TimeService>().As<ITimeService>();
+            builder.RegisterType<NotificationService>().As<INotificationService>();
+            builder.RegisterType<DatatecService>().As<IDatatecService>();
+            builder.RegisterType<DatatecMonitor>().As<IDatatecMonitor>();
+            Container = builder.Build();
+
+            using (var scope = Container.BeginLifetimeScope())
+            {
+                var service = scope.Resolve<IDatatecMonitor>();
+                service.Start();
+                Console.ReadLine();
+                service.Stop();
+
+            }
+
+     
+        }
 
             
-            
-        }
+
+          
     }
 }

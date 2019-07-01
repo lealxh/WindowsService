@@ -9,6 +9,9 @@ namespace Datatec.Services
     public interface ITimeService
     {
         DateTime GetCurrentTime();
-        bool IsWorkingHours();
+        bool IsActiveHours();
+        DateTime ReadLastEventTime();
+        TimeSpan TimeSpanSinceLastEvent();
+        void WriteLastEventTime();
     }
 }

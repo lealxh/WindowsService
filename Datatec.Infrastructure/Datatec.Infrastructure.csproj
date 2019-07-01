@@ -50,7 +50,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DatabaseService.cs" />
+    <Compile Include="FileService.cs" />
     <Compile Include="Interfaces\IDatabaseService.cs" />
+    <Compile Include="Interfaces\IFileService.cs" />
     <Compile Include="Interfaces\ILogService.cs" />
     <Compile Include="Interfaces\ISlackClient.cs" />
     <Compile Include="LogLevel.cs" />

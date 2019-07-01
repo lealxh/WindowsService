@@ -14,26 +14,35 @@ namespace Datatec.Implementation
     public class DatatecMonitor : IDatatecMonitor
     {
         
-        public readonly TimeSpan _timeSpanToCheck;
+        
         private readonly INotificationService notificationService;
         private readonly ILogService logService;
-        private Status _status;
-        private readonly string _datatecServerName;
-        private readonly string _datatecServiceName;
-        private ServiceController _datatecServiceController;
-        private Timer _tareaMonitor;
+        private readonly ITimeService timeService;
 
-        public DatatecMonitor(INotificationService notificationService,ILogService logService)
+        private Status _status;
+        private ServiceController _datatecServiceController;
+        public TimeSpan _timeSpanToCheck;
+        private string _datatecServerName;
+        private string _datatecServiceName;
+
+
+        private Timer _tareaMonitor;
+        public TimeSpan _maxTimeSpan;
+        
+
+        private bool InitializeService()
         {
             try
             {
-                    _status = Status.Stopped;
-                    _timeSpanToCheck = TimeSpan.Parse(ConfigurationManager.AppSettings["TimesPanToCheck"]);
-                    _datatecServerName = ConfigurationManager.AppSettings["DatatecServerName"];
-                    _datatecServiceName = ConfigurationManager.AppSettings["DatatecServiceName"];
 
-                    this.notificationService = notificationService;
-                    this.logService = logService;
+                _maxTimeSpan = TimeSpan.Parse(ConfigurationManager.AppSettings["MaxTimeSpan"]);
+                _timeSpanToCheck = TimeSpan.Parse(ConfigurationManager.AppSettings["TimeSpanToCheck"]);
+                _datatecServerName = ConfigurationManager.AppSettings["DatatecServerName"];
+                _datatecServiceName = ConfigurationManager.AppSettings["DatatecServiceName"];
+
+                ServiceController[] serviceControllers = ServiceController.GetServices(_datatecServerName);
+               _datatecServiceController = serviceControllers.Where(x => x.ServiceName == _datatecServiceName).Single();
+                return true;
             }
             catch (System.ComponentModel.Win32Exception ex)
             {
@@ -41,17 +50,52 @@ namespace Datatec.Implementation
                 notificationService.SendNotification(ex.ToString());
                 logService.Log(LogLevel.Error, ex.ToString());
             }
-
-            catch (ConfigurationErrorsException ex)
+           catch (ConfigurationErrorsException ex)
             {
 
                 notificationService.SendNotification(ex.ToString());
                 logService.Log(LogLevel.Error, ex.ToString());
             }
+            catch (ArgumentNullException ex)
+            {
+
+                logService.Log(LogLevel.Info, String.Format("Service {0} is not installed in {1}.", _datatecServiceName, _datatecServerName));
+                notificationService.SendNotification(String.Format("Service {0} is not installed in {1}.", _datatecServiceName, _datatecServerName));
+
+                notificationService.SendNotification(ex.ToString());
+                logService.Log(LogLevel.Error, ex.ToString());
+            }
+            catch (ArgumentException ex)
+            {
+
+                notificationService.SendNotification(ex.ToString());
+                logService.Log(LogLevel.Error, ex.ToString());
+            }
+            catch (InvalidOperationException ex)
+            {
+
+                notificationService.SendNotification(ex.ToString());
+                logService.Log(LogLevel.Error, ex.ToString());
+            }
+            return false;
+
         }
 
+        public DatatecMonitor(INotificationService notificationService,ILogService logService,ITimeService timeService)
+        {
+             _status = Status.Stopped;
+            this.notificationService = notificationService;
+            this.logService = logService;
+            this.timeService = timeService;
+        }
 
-        public bool isDatatecDown()
+       
+
+        private bool FindSilence()
+        {
+            return (timeService.IsActiveHours() && timeService.TimeSpanSinceLastEvent() > _maxTimeSpan);
+        }
+        private bool isDatatecDown()
         {
             return !_datatecServiceController.Status.Equals(ServiceControllerStatus.Running);
         }
@@ -127,13 +171,19 @@ namespace Datatec.Implementation
             }
         }
 
+        
         private void CheckServiceStatus()
         {
-               if(_status == Status.Started)
+               if (_status == Status.Started)
                 if (isDatatecDown())
                 {
                     RestartWindowsService();
-                   
+                }
+                else
+                if (FindSilence())
+                {
+                    logService.Log(LogLevel.Warn, String.Format("Tiempo desde el ultimo evento: {0}", timeService.TimeSpanSinceLastEvent().ToString(@"hh\:mm\:ss")));
+                    notificationService.SendNotification(String.Format("Tiempo desde el ultimo evento: {0}", timeService.TimeSpanSinceLastEvent().ToString(@"hh\:mm\:ss")));
                 }
                 else
                 {
@@ -171,27 +221,23 @@ namespace Datatec.Implementation
 
             }
         }
+
         void DisposeTareaMonitor()
         {
             _tareaMonitor.Change(Timeout.Infinite, Timeout.Infinite);
             _tareaMonitor.Dispose();
         }
+
+
         public void Start()
         {
-             ServiceController[] serviceControllers = ServiceController.GetServices(_datatecServerName);
-             _datatecServiceController = serviceControllers.Where(x => x.ServiceName == _datatecServiceName).SingleOrDefault();
-
-            if (_datatecServiceController != null)
+           
+            if (InitializeService())
             {
                 _status = Status.Started;
                 logService.Log(LogLevel.Info, "Datatec Monitor Started");
 
                 CreateTareaMonitor();
-            }
-            else
-            {
-                logService.Log(LogLevel.Info,String.Format("Service {0} is not installed in {1}.", _datatecServiceName, _datatecServerName));
-                notificationService.SendNotification(String.Format("Service {0} is not installed in {1}.", _datatecServiceName,_datatecServerName));
             }
         
         }
@@ -209,5 +255,6 @@ namespace Datatec.Implementation
             }
 
         }
+  
     }
 }

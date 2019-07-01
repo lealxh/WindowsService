@@ -11,8 +11,6 @@ namespace Datatec.Services
 
         void Start();
 
-        bool isDatatecDown();
-
         void Stop();
     }
 }
