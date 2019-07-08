@@ -96,8 +96,12 @@ namespace Datatec.Infrastructure
                 _logService.Log(LogLevel.Error, ex.ToString());
 
             }
-           
-            finally
+            catch (Exception ex)
+            {
+                _logService.Log(LogLevel.Error, ex.ToString());
+
+            }
+             finally
             {
                 sqlConnection.Close();
                 sqlConnection.Dispose();

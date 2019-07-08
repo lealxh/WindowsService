@@ -16,6 +16,7 @@ namespace Datatec.Implementation
         public DateTime InitialTime { get; set; }
         public DateTime FinalTime { get; set; }
     }
+
     public class TimeService : ITimeService
     {
         private readonly IFileService fileService;
@@ -83,31 +84,40 @@ namespace Datatec.Implementation
         public bool IsActiveHours()
         {
             bool isActiveHours = false;
-       
-            foreach (Interval interval in _workingHours)
-             if (interval.InitialTime <= GetCurrentTime() && GetCurrentTime() <= interval.FinalTime)
-                    isActiveHours = true;
 
+            DateTime currentTime = GetCurrentTime();
+
+            for (int i = 0 ;  i < _workingHours.Count && !isActiveHours ; i++)
+            {
+                if (_workingHours[i].InitialTime <= currentTime && currentTime <= _workingHours[i].FinalTime)
+                  isActiveHours = true;
+              
+            }
             return isActiveHours;
          
         }
 
         public void WriteLastEventTime()
         {
-            fileService.WriteLine(DateTime.Now.ToString());
+            DateTime currentTime = GetCurrentTime();
+           //logService.Log(LogLevel.Info, String.Format("Write Last event time: " + currentTime.ToString()));
+           fileService.WriteLine(currentTime.ToString());
         }
 
         public DateTime ReadLastEventTime()
         {
-            DateTime time = DateTime.Now;
+            
             String line = fileService.ReadFirstLine();
-            DateTime.TryParse(line, out time);
+            DateTime time = DateTime.Parse(line);
+            //logService.Log(LogLevel.Info, String.Format("Read Last event time: " + time.ToString()));
             return time;
         }
 
         public TimeSpan TimeSpanSinceLastEvent()
         {
-            TimeSpan ts = GetCurrentTime() - ReadLastEventTime();
+            DateTime currentTime = GetCurrentTime();
+            DateTime lastEventTime= ReadLastEventTime();
+            TimeSpan ts = currentTime - lastEventTime; 
             return ts;
 
         }

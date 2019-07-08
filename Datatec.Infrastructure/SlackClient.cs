@@ -56,6 +56,11 @@ namespace Datatec.Infrastructure
                 }
 
             }
+            catch (System.Net.WebException ex)
+            {
+                logService.Log(LogLevel.Error, "Error enviando mensaje de slack :"+ex.Message);
+            }
+            
             catch (Exception ex)
             {
                  logService.Log(LogLevel.Error, ex.ToString());

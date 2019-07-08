@@ -26,7 +26,7 @@ namespace Datatec.Consola
 
             using (var scope = Container.BeginLifetimeScope())
             {
-                var service = scope.Resolve<IDatatecMonitor>();
+                var service = scope.Resolve<IDatatecService>();
                 service.Start();
                 Console.ReadLine();
                 service.Stop();

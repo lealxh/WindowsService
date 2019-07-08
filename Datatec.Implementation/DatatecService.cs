@@ -48,16 +48,28 @@ namespace Datatec.Implementation
             return false;
 
         }
-        private void CreateWatcher()
+        private bool CreateWatcher()
         {
+            
             try
             {
-                _watcher = new FileSystemWatcher(_pathToWatch, _nameofFile);
-                _watcher.NotifyFilter = NotifyFilters.LastWrite;
-                _watcher.Changed += OnChanged;
-                _watcher.Error += new ErrorEventHandler(OnError);
-                _watcher.EnableRaisingEvents = true;
-                logService.Log(LogLevel.Info, "FileSystemWatcher inicializado en " + _pathToWatch + "\\" + _nameofFile);
+                if (Directory.Exists(_pathToWatch))
+                {
+                    _watcher = new FileSystemWatcher(_pathToWatch, _nameofFile);
+                    _watcher.NotifyFilter = NotifyFilters.LastWrite;
+                    _watcher.Changed += OnChanged;
+                    _watcher.Error += new ErrorEventHandler(OnError);
+                    _watcher.EnableRaisingEvents = true;
+                    logService.Log(LogLevel.Debug, "FileSystemWatcher inicializado en " + _pathToWatch + "\\" + _nameofFile);
+                    return true;
+
+                }
+                else
+                {
+                    logService.Log(LogLevel.Warn, "El directorio " + _pathToWatch + "\\" + _nameofFile+" no esta disponible");
+                }
+
+        
             }
 
 
@@ -85,12 +97,17 @@ namespace Datatec.Implementation
             {
                 logService.Log(LogLevel.Error, ex.ToString());
             }
+            catch (Exception ex)
+            {
+                logService.Log(LogLevel.Error, ex.ToString());
+            }
 
+            return false;
 
         }
         private void DisposeWatcher()
         {
-            logService.Log(LogLevel.Info, "FileSystemWatcher deshabilitado");
+            logService.Log(LogLevel.Debug, "FileSystemWatcher deshabilitado");
             try
             {
                 _watcher.EnableRaisingEvents = false;
@@ -133,7 +150,7 @@ namespace Datatec.Implementation
             {
                 String path = _pathToWatch + @"\" + _nameofFile;
                 string lastline = File.ReadLines(path).Last();
-                logService.Log(LogLevel.Info, lastline);
+                logService.Log(LogLevel.Debug, lastline);
                 return lastline;
             }
             catch (System.IO.IOException ioe)
@@ -150,18 +167,16 @@ namespace Datatec.Implementation
         {
             try
             {
-
-
-              
                 string FechaStr = lastLine.Substring(0, 10).Trim();
                 FechaStr = FechaStr.Substring(FechaStr.Length - 6, 6);
                 FechaStr = FechaStr.Substring(0, 2) + ":" + FechaStr.Substring(2, 2) + ":" + FechaStr.Substring(4, 2);
                 FechaStr = DateTime.Now.ToString("dd/MM/yyyy") + " " + FechaStr;
+                logService.Log(LogLevel.Debug,"Fecha String: "+FechaStr);
 
                 DateTime FechaDt = DateTime.Now;
+                DateTime.TryParse(FechaStr,out FechaDt);
 
-                DateTime.TryParseExact(FechaStr, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out FechaDt);
-
+                logService.Log(LogLevel.Debug, "Fecha DateTime: " + FechaDt.ToString());
 
                 string valorStr = lastLine.Substring(10, 9).Trim().Replace('.', ',');
                 decimal valorDec = 0;
@@ -178,14 +193,15 @@ namespace Datatec.Implementation
                     Factor = factorDec,
                     Moneda = _moneda
                 };
-
+                
                 dbService.ExecuteQuery(_spName, dbService.CreateParameters(data));
-                logService.Log(LogLevel.Info, "Informacion enviada a Base de datos");
+                logService.Log(LogLevel.Debug, "Informacion enviada a Base de datos");
             }
-            catch (ConfigurationErrorsException ex)
+            catch (Exception ex)
             {
                 logService.Log(LogLevel.Error, ex.ToString());
             }
+          
 
         }
 
@@ -203,9 +219,17 @@ namespace Datatec.Implementation
         }
        public void Stop()
         {
-           this._status = Status.Stopped;
-           DisposeWatcher();
-           logService.Log(LogLevel.Info, "Servicio Detenido");
+            try
+            {
+                this._status = Status.Stopped;
+                DisposeWatcher();
+                logService.Log(LogLevel.Info, "Servicio Detenido");
+            }
+            catch (Exception ex)
+            {
+                logService.Log(LogLevel.Error, ex.ToString());
+            }
+           
         }
 
         private void OnChanged(object source, FileSystemEventArgs e)
@@ -216,13 +240,55 @@ namespace Datatec.Implementation
                 WriteOutPut(lastLine);
 
         }
+        private Timer _tareaMonitor;
+        void DisposeReinitTask()
+        {
+            _tareaMonitor.Change(Timeout.Infinite, Timeout.Infinite);
+            _tareaMonitor.Dispose();
+        }
+
+        private void CreateReinitTask()
+        {
+            try
+            {
+                var startTimeSpan = TimeSpan.FromMinutes(1);
+                var periodTimeSpan = TimeSpan.Parse("00:01:00");
+                _tareaMonitor = new Timer((e) =>
+                {
+                    if (Directory.Exists(_pathToWatch))
+                    {
+                        if(CreateWatcher())
+                            DisposeReinitTask();
+                    }
+                    else
+                    {
+                        logService.Log(LogLevel.Debug, "El directorio " + _pathToWatch + "\\" + _nameofFile + " no esta disponible");
+                    }
+
+                },
+                null,
+                startTimeSpan,
+                periodTimeSpan);
+
+            }
+            catch (ArgumentNullException ane)
+            {
+                notificationService.SendNotification(ane.ToString());
+                logService.Log(LogLevel.Error, ane.ToString());
+            }
+            catch (ArgumentOutOfRangeException aoe)
+            {
+                notificationService.SendNotification(aoe.ToString());
+                logService.Log(LogLevel.Error, aoe.ToString());
+
+            }
+
+        }
 
         private void OnError(object source, ErrorEventArgs e)
         {
-            logService.Log(LogLevel.Error, "Error lanzado por el watcher");
-            logService.Log(LogLevel.Error, e.GetException().ToString());
-            notificationService.SendNotification("Error detectado por el watcher: " + e.GetException().Message);
-            CreateWatcher();
+            logService.Log(LogLevel.Error, "Error detectado por el watcher: "+e.GetException().Message);
+            CreateReinitTask();
         }
 
 
