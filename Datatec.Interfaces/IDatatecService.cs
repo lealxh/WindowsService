@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datatec.Services
+namespace Datatec.Interfaces
 {
-    public interface IDatatecMonitor
+    public interface IDatatecService
     {
-
         void Start();
+        String ReadInput();
+
+        void WriteOutPut(string lastLine);
 
         void Stop();
     }

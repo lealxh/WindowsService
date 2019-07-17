@@ -1,4 +1,4 @@
-﻿namespace Datatec.WindowsService
+﻿namespace Datatec.Service
 {
     partial class ProjectInstaller
     {

@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datatec.Services
+namespace Datatec.Interfaces
 {
-    public interface INotificationService
+    public interface IDatatecMonitor
     {
-        void SendNotification(string message);
+
+        void Start();
+
+        void Stop();
     }
 }

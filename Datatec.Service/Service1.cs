@@ -1,6 +1,6 @@
 ﻿
 using Datatec.Infrastructure;
-using Datatec.Services;
+using Datatec.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,7 +11,7 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datatec.WindowsService
+namespace Datatec.Service
 {
     public partial class Service1 : ServiceBase
     {

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.645
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Services", "Datatec.Services\Datatec.Services.csproj", "{49670B7F-7F75-4413-B190-D4EF12D92D3B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Interfaces", "Datatec.Interfaces\Datatec.Interfaces.csproj", "{49670B7F-7F75-4413-B190-D4EF12D92D3B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Implementation", "Datatec.Implementation\Datatec.Implementation.csproj", "{F2160365-E412-4413-A467-07FB83C5398B}"
 EndProject
@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Infrastructure", "D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Consola", "Datatec.Consola\Datatec.Consola.csproj", "{225599DE-28D2-453A-A70D-0D184E55AEAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.WindowsService", "Datatec.WindowsService\Datatec.WindowsService.csproj", "{D48501B5-ABC8-4128-96CE-B345221ECAB2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.Service", "Datatec.Service\Datatec.Service.csproj", "{D48501B5-ABC8-4128-96CE-B345221ECAB2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datatec.DTO", "Datatec.DTO\Datatec.DTO.csproj", "{4F1B0825-2BB2-4E9F-AB4C-49AA019499C3}"
 EndProject

@@ -8,7 +8,7 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 using Datatec.Infrastructure;
-using Datatec.Services;
+using Datatec.Interfaces;
 
 namespace Datatec.Monitor
 {

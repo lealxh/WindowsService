@@ -1,5 +1,5 @@
 ﻿using Datatec.Infrastructure;
-using Datatec.Services;
+using Datatec.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -88,13 +88,7 @@ namespace Datatec.Implementation
             this.logService = logService;
             this.timeService = timeService;
         }
-
-       
-
-        private bool FindSilence()
-        {
-            return (timeService.IsActiveHours() && timeService.TimeSpanSinceLastEvent() > _maxTimeSpan);
-        }
+                                  
         private bool isDatatecDown()
         {
             return !_datatecServiceController.Status.Equals(ServiceControllerStatus.Running);
@@ -174,16 +168,20 @@ namespace Datatec.Implementation
         
         private void CheckServiceStatus()
         {
-               if (_status == Status.Started)
+
+
+                var time = timeService.TimeSpanSinceLastEvent();
+                if (_status == Status.Started)
                 if (isDatatecDown())
                 {
                     RestartWindowsService();
                 }
                 else
-                if (FindSilence())
+                if (timeService.IsActiveHours() && time > _maxTimeSpan)
                 {
-                    logService.Log(LogLevel.Warn, String.Format("Tiempo desde el ultimo evento: {0}", timeService.TimeSpanSinceLastEvent().ToString(@"hh\:mm\:ss")));
-                    notificationService.SendNotification(String.Format("Tiempo desde el ultimo evento: {0}", timeService.TimeSpanSinceLastEvent().ToString(@"hh\:mm\:ss")));
+                    
+                    logService.Log(LogLevel.Warn, String.Format("Tiempo desde el ultimo evento: {0}", time.ToString(@"hh\:mm\:ss")));
+                    notificationService.SendNotification(String.Format("Tiempo desde el ultimo evento: {0}", time.ToString(@"hh\:mm\:ss")));
                 }
                 else
                 {

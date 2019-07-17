@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Datatec.Infrastructure;
-using Datatec.Services;
+using Datatec.Interfaces;
 
 namespace Datatec.Implementation
 {
@@ -78,7 +78,9 @@ namespace Datatec.Implementation
 
         public DateTime GetCurrentTime()
         {
-            return DateTime.Now;
+            DateTime now = DateTime.Now;
+            logService.Log(LogLevel.Debug, "Now: "+now.ToString());
+            return now;
         }
 
         public bool IsActiveHours()
@@ -109,7 +111,7 @@ namespace Datatec.Implementation
             
             String line = fileService.ReadFirstLine();
             DateTime time = DateTime.Parse(line);
-            //logService.Log(LogLevel.Info, String.Format("Read Last event time: " + time.ToString()));
+            logService.Log(LogLevel.Debug, String.Format("LastEventTime: " + time.ToString()));
             return time;
         }
 
@@ -117,7 +119,8 @@ namespace Datatec.Implementation
         {
             DateTime currentTime = GetCurrentTime();
             DateTime lastEventTime= ReadLastEventTime();
-            TimeSpan ts = currentTime - lastEventTime; 
+            TimeSpan ts = currentTime - lastEventTime;
+            logService.Log(LogLevel.Debug, String.Format("TimeSpanSinceLastEvent: " + ts.ToString()));
             return ts;
 
         }

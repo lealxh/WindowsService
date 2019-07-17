@@ -1,7 +1,7 @@
 ﻿using Datatec.Implementation;
 using Datatec.Infrastructure;
 
-namespace Datatec.WindowsService
+namespace Datatec.Service
 {
     partial class Service1
     {

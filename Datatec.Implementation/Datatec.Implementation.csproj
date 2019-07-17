@@ -55,9 +55,9 @@
       <Project>{bf817d46-9404-4eea-88fe-d76d01d67999}</Project>
       <Name>Datatec.Infrastructure</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Datatec.Services\Datatec.Services.csproj">
+    <ProjectReference Include="..\Datatec.Interfaces\Datatec.Interfaces.csproj">
       <Project>{49670B7F-7F75-4413-B190-D4EF12D92D3B}</Project>
-      <Name>Datatec.Services</Name>
+      <Name>Datatec.Interfaces</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

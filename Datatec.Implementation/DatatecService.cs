@@ -1,6 +1,6 @@
 ﻿using Datatec.DTO;
 using Datatec.Infrastructure;
-using Datatec.Services;
+using Datatec.Interfaces;
 using System;
 using System.Configuration;
 using System.Globalization;

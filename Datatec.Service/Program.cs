@@ -1,6 +1,6 @@
 ﻿using Datatec.Implementation;
 using Datatec.Infrastructure;
-using Datatec.Services;
+using Datatec.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Autofac;
 
-namespace Datatec.WindowsService
+namespace Datatec.Service
 {
     static class Program
     {
