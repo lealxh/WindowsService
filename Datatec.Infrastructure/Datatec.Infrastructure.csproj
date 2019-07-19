@@ -57,7 +57,10 @@
     <Compile Include="Interfaces\ISlackClient.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="LogService.cs" />
+    <Compile Include="MonitorSettings.cs" />
     <Compile Include="Payload.cs" />
+    <Compile Include="PeriodosCollection.cs" />
+    <Compile Include="PeriodoSetting.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SlackClient.cs" />
   </ItemGroup>

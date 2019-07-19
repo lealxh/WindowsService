@@ -7,8 +7,8 @@
     <ProjectGuid>{49670B7F-7F75-4413-B190-D4EF12D92D3B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Datatec.Services</RootNamespace>
-    <AssemblyName>Datatec.Services</AssemblyName>
+    <RootNamespace>Datatec.Interfaces</RootNamespace>
+    <AssemblyName>Datatec.Interfaces</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

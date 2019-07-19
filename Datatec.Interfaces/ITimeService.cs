@@ -10,8 +10,10 @@ namespace Datatec.Interfaces
     {
         DateTime GetCurrentTime();
         bool IsActiveHours();
-        DateTime ReadLastEventTime();
         TimeSpan TimeSpanSinceLastEvent();
+        bool EncuentraSilencioAnormal();
+
+        DateTime ReadLastEventTime();
         void WriteLastEventTime();
     }
 }

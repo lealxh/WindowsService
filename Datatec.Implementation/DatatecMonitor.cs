@@ -1,4 +1,5 @@
-﻿using Datatec.Infrastructure;
+﻿using Datatec.DTO;
+using Datatec.Infrastructure;
 using Datatec.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -18,30 +19,47 @@ namespace Datatec.Implementation
         private readonly INotificationService notificationService;
         private readonly ILogService logService;
         private readonly ITimeService timeService;
-
         private Status _status;
         private ServiceController _datatecServiceController;
-        public TimeSpan _timeSpanToCheck;
         private string _datatecServerName;
         private string _datatecServiceName;
+     
+        private List<Tarea> _tareas;
+        private Tarea tareaInicializadora;
 
 
-        private Timer _tareaMonitor;
-        public TimeSpan _maxTimeSpan;
-        
+        private List<Periodo> getPeriodos()
+        {
+            List<Periodo> ret = new List<Periodo>();
+
+            var section = ConfigurationManager.GetSection("MonitorSettings");
+
+                if (section != null)
+                {
+                    var periodos = (section as MonitorSettings).Periodos;
+                    foreach (var periodo in periodos)
+                    {
+                        PeriodoSetting p = (PeriodoSetting)periodo;
+                        ret.Add(new Periodo() { Nombre = p.Nombre, HoraInicio = p.HoraInicio, HoraFin = p.HoraFin, IntervaloRevision = p.IntervaloRevision, SilencioPermitido = p.SilencioPermitido });
+                    }
+                }
+
+           return ret;
+
+        }
 
         private bool InitializeService()
         {
             try
             {
 
-                _maxTimeSpan = TimeSpan.Parse(ConfigurationManager.AppSettings["MaxTimeSpan"]);
-                _timeSpanToCheck = TimeSpan.Parse(ConfigurationManager.AppSettings["TimeSpanToCheck"]);
                 _datatecServerName = ConfigurationManager.AppSettings["DatatecServerName"];
                 _datatecServiceName = ConfigurationManager.AppSettings["DatatecServiceName"];
+            
 
                 ServiceController[] serviceControllers = ServiceController.GetServices(_datatecServerName);
                _datatecServiceController = serviceControllers.Where(x => x.ServiceName == _datatecServiceName).Single();
+
                 return true;
             }
             catch (System.ComponentModel.Win32Exception ex)
@@ -168,43 +186,44 @@ namespace Datatec.Implementation
         
         private void CheckServiceStatus()
         {
+            if (_status == Status.Started)
+            {
+                logService.Log(LogLevel.Debug, "  ");
+                logService.Log(LogLevel.Debug,"Checking service status");
 
-
-                var time = timeService.TimeSpanSinceLastEvent();
-                if (_status == Status.Started)
                 if (isDatatecDown())
                 {
                     RestartWindowsService();
                 }
                 else
-                if (timeService.IsActiveHours() && time > _maxTimeSpan)
+                if (timeService.IsActiveHours() && timeService.EncuentraSilencioAnormal())
                 {
-                    
-                    logService.Log(LogLevel.Warn, String.Format("Tiempo desde el ultimo evento: {0}", time.ToString(@"hh\:mm\:ss")));
-                    notificationService.SendNotification(String.Format("Tiempo desde el ultimo evento: {0}", time.ToString(@"hh\:mm\:ss")));
+                    TimeSpan time = timeService.TimeSpanSinceLastEvent();
+                    logService.Log(LogLevel.Warn, String.Format("Tiempo desde el ultimo evento: {0}", time.ToString()));
+                    notificationService.SendNotification(String.Format("Tiempo desde el ultimo evento: {0}", time.ToString()));
                 }
-                else
-                {
-                    logService.Log(LogLevel.Info, String.Format("Service {0} Ok.", _datatecServiceName));
-                    notificationService.SendNotification(String.Format("Service {0} Ok.", _datatecServiceName));
-                }
-
+         
+            }
+            else
+            {
+                logService.Log(LogLevel.Info, String.Format("Service {0} Down.", _datatecServiceName));
+                notificationService.SendNotification(String.Format("Service {0} Down.", _datatecServiceName));
+            }
         }
 
-        
-        public void CreateTareaMonitor()
+
+        public void IniciarTareasMonitoras()
         {
             try
             {
-                var startTimeSpan = TimeSpan.Zero;
-                var periodTimeSpan = _timeSpanToCheck;
-                _tareaMonitor = new Timer((e) =>
+                
+                _tareas = new List<Tarea>();
+                foreach (var periodo in getPeriodos())
                 {
-                    CheckServiceStatus();
-                }, 
-                null, 
-                startTimeSpan, 
-                periodTimeSpan);
+                    Tarea t = new Tarea(CheckServiceStatus, periodo);
+                    t.Iniciar();
+                   _tareas.Add(t);
+                }
 
             }
             catch (ArgumentNullException ane)
@@ -220,22 +239,39 @@ namespace Datatec.Implementation
             }
         }
 
-        void DisposeTareaMonitor()
+        public void DetenerTareasMonitoras()
         {
-            _tareaMonitor.Change(Timeout.Infinite, Timeout.Infinite);
-            _tareaMonitor.Dispose();
+           foreach (Tarea tarea in _tareas)
+             tarea.Detener();
         }
+        private void CrearTareaInicializadora()
+        {
+            string FechaStr = String.Format("{0} {1}", DateTime.Now.AddDays(1).ToString("dd/MM/yyyy"), "01:00");
+            DateTime hi = DateTime.Parse(FechaStr);
+            DateTime hf = hi.AddYears(10);
 
-
+            Periodo p = new Periodo()
+            {
+                HoraInicio = hi,
+                HoraFin = hf,
+                IntervaloRevision = TimeSpan.Parse("24:00:00"),
+                Nombre = "TareaInicializadora",
+            };
+            tareaInicializadora = new Tarea(IniciarTareasMonitoras, p);
+            tareaInicializadora.Iniciar();
+        }
+       
         public void Start()
         {
            
             if (InitializeService())
             {
+
                 _status = Status.Started;
                 logService.Log(LogLevel.Info, "Datatec Monitor Started");
-
-                CreateTareaMonitor();
+                IniciarTareasMonitoras();
+                CrearTareaInicializadora();
+                
             }
         
         }
@@ -244,7 +280,8 @@ namespace Datatec.Implementation
         {
             if (_status == Status.Started)
             {
-                DisposeTareaMonitor();
+                DetenerTareasMonitoras();
+                tareaInicializadora.Detener();
                 logService.Log(LogLevel.Info, "Datatec Monitor Stoped");
             }
             else

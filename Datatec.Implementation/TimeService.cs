@@ -5,53 +5,44 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Datatec.DTO;
 using Datatec.Infrastructure;
 using Datatec.Interfaces;
 
 namespace Datatec.Implementation
 {
-
-    public class Interval
-    {
-        public DateTime InitialTime { get; set; }
-        public DateTime FinalTime { get; set; }
-    }
-
     public class TimeService : ITimeService
     {
         private readonly IFileService fileService;
         private readonly ILogService logService;
-        private List<Interval> _workingHours;
+        private List<Periodo> _periodos;
+        private Periodo _periodoAtual;
 
+        private List<Periodo> getPeriodos()
+        {
+            List<Periodo> ret = new List<Periodo>();
+            var section = ConfigurationManager.GetSection("MonitorSettings");
 
+            if (section != null)
+            {
+                var periodos = (section as MonitorSettings).Periodos;
+                foreach (var periodo in periodos)
+                {
+                    PeriodoSetting p = (PeriodoSetting)periodo;
+                    ret.Add( new Periodo() { Nombre = p.Nombre, HoraInicio = p.HoraInicio, HoraFin = p.HoraFin, IntervaloRevision = p.IntervaloRevision ,SilencioPermitido=p.SilencioPermitido} );
+                 }
+            }
+            return ret;
+
+        }
         private void InitializeService()
         {
             try
             {
-
                 string filepath=ConfigurationManager.AppSettings["LastEventFile"];
                 fileService.ConfigurePath(filepath, FileMode.Truncate);
-                string workingHoursStr = ConfigurationManager.AppSettings["WorkingHours"];
-               _workingHours = new List<Interval>();
-                string[] intervals = workingHoursStr.Split(',');
-                foreach (string interval in intervals)
-                {
-                    string[] hours = interval.Split('-');
-                    string date = DateTime.Now.ToShortDateString();
-
-                    DateTime initialTime = DateTime.Parse(date + " " + hours[0]);
-                    DateTime finalTime = DateTime.Parse(date + " " + hours[1]);
-
-                    _workingHours.Add(new Interval()
-                    {
-                        InitialTime = initialTime,
-                        FinalTime=finalTime
-
-                    
-                    });
-
-
-                }
+                _periodos = getPeriodos();
+               
             }
             catch (ConfigurationErrorsException ex)
             {
@@ -89,15 +80,34 @@ namespace Datatec.Implementation
 
             DateTime currentTime = GetCurrentTime();
 
-            for (int i = 0 ;  i < _workingHours.Count && !isActiveHours ; i++)
+            for (int i = 0 ;  i < _periodos.Count && !isActiveHours ; i++)
             {
-                if (_workingHours[i].InitialTime <= currentTime && currentTime <= _workingHours[i].FinalTime)
-                  isActiveHours = true;
+                if (Between(currentTime, _periodos[i].HoraInicio , _periodos[i].HoraFin))
+                {
+                    isActiveHours = true;
+                    _periodoAtual = _periodos[i];
+                }
               
             }
             return isActiveHours;
          
         }
+
+        private bool Between(DateTime input, DateTime date1, DateTime date2)
+        {
+            return (input > date1 && input < date2);
+        }
+
+        public bool EncuentraSilencioAnormal()
+        {
+            bool encontrado = false;
+            TimeSpan time = TimeSpanSinceLastEvent();
+            if (time > _periodoAtual.SilencioPermitido)
+                encontrado=true;
+                            
+            return encontrado;
+        }
+
 
         public void WriteLastEventTime()
         {
