@@ -19,6 +19,7 @@ namespace Datatec.Implementation
         private readonly INotificationService notificationService;
         private readonly ILogService logService;
         private readonly ITimeService timeService;
+        private readonly IFeriadosChecker feriadosService;
         private Status _status;
         private ServiceController _datatecServiceController;
         private string _datatecServerName;
@@ -55,7 +56,7 @@ namespace Datatec.Implementation
 
                 _datatecServerName = ConfigurationManager.AppSettings["DatatecServerName"];
                 _datatecServiceName = ConfigurationManager.AppSettings["DatatecServiceName"];
-            
+                _tareas = new List<Tarea>();
 
                 ServiceController[] serviceControllers = ServiceController.GetServices(_datatecServerName);
                _datatecServiceController = serviceControllers.Where(x => x.ServiceName == _datatecServiceName).Single();
@@ -99,12 +100,13 @@ namespace Datatec.Implementation
 
         }
 
-        public DatatecMonitor(INotificationService notificationService,ILogService logService,ITimeService timeService)
+        public DatatecMonitor(INotificationService notificationService,ILogService logService,ITimeService timeService, IFeriadosChecker feriadosService)
         {
              _status = Status.Stopped;
             this.notificationService = notificationService;
             this.logService = logService;
             this.timeService = timeService;
+            this.feriadosService = feriadosService;
         }
                                   
         private bool isDatatecDown()
@@ -211,19 +213,49 @@ namespace Datatec.Implementation
             }
         }
 
-
-        public void IniciarTareasMonitoras()
+        private bool existePeriodo(Periodo p)
+        {
+            foreach (var tarea in _tareas)
+                if (p.HoraInicio == tarea.Periodo.HoraInicio && p.HoraFin == tarea.Periodo.HoraFin)
+                  return true;
+            
+            return false;
+        }
+        public void CrearTareasMonitoras()
         {
             try
             {
-                
-                _tareas = new List<Tarea>();
-                foreach (var periodo in getPeriodos())
+              
+                if(!feriadosService.esFeriado(DateTime.Now))
                 {
-                    Tarea t = new Tarea(CheckServiceStatus, periodo);
-                    t.Iniciar();
-                   _tareas.Add(t);
+                    logService.Log(LogLevel.Debug, " ");
+                    logService.Log(LogLevel.Debug, "Creando tareas monitoras");
+
+                    if (_tareas != null)
+                        DetenerTareasMonitoras();
+
+
+                    foreach (var p in getPeriodos())
+                    {
+
+                        while (existePeriodo(p))
+                        {
+                            p.HoraInicio = p.HoraInicio.AddDays(1);
+                            p.HoraFin = p.HoraFin.AddDays(1);
+                        }
+
+                        logService.Log(LogLevel.Debug, String.Format("Tarea: {0} - {1} - {2} - {3}", p.Nombre, p.HoraInicio, p.HoraFin, p.IntervaloRevision));
+                        Tarea t = new Tarea(CheckServiceStatus, p);
+                        t.Iniciar();
+                        _tareas.Add(t);
+                    }
+
+
                 }
+                else
+                 logService.Log(LogLevel.Debug, String.Format("Dia feriado: {0} ",DateTime.Now));
+
+
 
             }
             catch (ArgumentNullException ane)
@@ -246,7 +278,7 @@ namespace Datatec.Implementation
         }
         private void CrearTareaInicializadora()
         {
-            string FechaStr = String.Format("{0} {1}", DateTime.Now.AddDays(1).ToString("dd/MM/yyyy"), "01:00");
+            string FechaStr = String.Format("{0} {1}", DateTime.Now.ToString("dd/MM/yyyy"), "07:00");
             DateTime hi = DateTime.Parse(FechaStr);
             DateTime hf = hi.AddYears(10);
 
@@ -254,11 +286,17 @@ namespace Datatec.Implementation
             {
                 HoraInicio = hi,
                 HoraFin = hf,
-                IntervaloRevision = TimeSpan.Parse("24:00:00"),
+                IntervaloRevision = TimeSpan.FromHours(24),
                 Nombre = "TareaInicializadora",
             };
-            tareaInicializadora = new Tarea(IniciarTareasMonitoras, p);
+            logService.Log(LogLevel.Debug, " ");
+            logService.Log(LogLevel.Debug, "Creando tarea inicializadora");
+
+            tareaInicializadora = new Tarea(CrearTareasMonitoras, p);
+            logService.Log(LogLevel.Debug, String.Format(" Tarea: {0} - {1} - {2} - {3}",p.Nombre, p.HoraInicio, p.HoraFin,p.IntervaloRevision));
             tareaInicializadora.Iniciar();
+            GC.KeepAlive(tareaInicializadora);
+            GC.KeepAlive(tareaInicializadora._timer);
         }
        
         public void Start()
@@ -269,7 +307,7 @@ namespace Datatec.Implementation
 
                 _status = Status.Started;
                 logService.Log(LogLevel.Info, "Datatec Monitor Started");
-                IniciarTareasMonitoras();
+               // IniciarTareasMonitoras();
                 CrearTareaInicializadora();
                 
             }

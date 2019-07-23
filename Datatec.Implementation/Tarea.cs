@@ -10,9 +10,10 @@ namespace Datatec.Implementation
 {
     public class Tarea
     {
-        private Timer _timer;
+        public Timer _timer;
         private Action _callback;
         private Periodo _periodo;
+        public Periodo Periodo { get { return _periodo; } }
         public bool Running { get; private set; }
 
         public Tarea(Action callback, Periodo periodo)
@@ -25,7 +26,7 @@ namespace Datatec.Implementation
             TimeSpan inicio = TimeSpan.Zero;
           
             if (_periodo.HoraInicio > DateTime.Now)
-             inicio = _periodo.HoraInicio - DateTime.Now;
+             inicio = _periodo.HoraInicio.Subtract(DateTime.Now);
 
             if (DateTime.Now < _periodo.HoraFin )
             {
